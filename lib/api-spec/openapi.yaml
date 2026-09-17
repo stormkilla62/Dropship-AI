@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: research
+    description: Product research operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /research:
+    post:
+      operationId: runProductResearch
+      tags: [research]
+      summary: Run product research
+      description: Runs product research through the configured research provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchInput"
+      responses:
+        "200":
+          description: Research result or explicit provider-unavailable state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchResponse"
+        "400":
+          description: Invalid research query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Research pipeline error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +66,104 @@ components:
           type: string
       required:
         - status
+    ResearchInput:
+      type: object
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 160
+      required:
+        - query
+    ResearchResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [unavailable, no_results, ready]
+        provider:
+          type: string
+          enum: [unavailable]
+        query:
+          type: string
+        note:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResearchSection"
+      required:
+        - status
+        - provider
+        - query
+        - note
+        - sections
+    ResearchSection:
+      type: object
+      properties:
+        key:
+          type: string
+          enum: [demand-signals, competition, customer-angle]
+        title:
+          type: string
+        status:
+          type: string
+          enum: [unavailable, no_results, ready]
+        summary:
+          type: [string, "null"]
+        claims:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResearchClaim"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResearchSource"
+      required:
+        - key
+        - title
+        - status
+        - summary
+        - claims
+        - sources
+    ResearchClaim:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        kind:
+          type: string
+          enum: [sourced_fact, ai_analysis]
+        sourceIds:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - text
+        - kind
+        - sourceIds
+    ResearchSource:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+      required:
+        - id
+        - title
+        - url
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
 
