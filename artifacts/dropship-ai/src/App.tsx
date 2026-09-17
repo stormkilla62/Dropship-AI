@@ -27,8 +27,23 @@ import {
 
 const queryClient = new QueryClient();
 
-type ResearchState = 'idle' | 'researching' | 'ready';
+type ResearchState = 'idle' | 'researching' | 'captured';
 type ResearchForm = { query: string };
+
+const researchSections = [
+  {
+    title: 'Demand signals',
+    description: 'Search interest, audience intent, and signs of an active problem.',
+  },
+  {
+    title: 'Competition',
+    description: 'Existing offers, positioning, and gaps worth investigating.',
+  },
+  {
+    title: 'Customer angle',
+    description: 'Who might buy it, why they would care, and what to ask next.',
+  },
+];
 
 function Home() {
   const form = useForm<ResearchForm>({ defaultValues: { query: '' } });
@@ -47,7 +62,7 @@ function Home() {
     if (!cleanQuery || researchState === 'researching') return;
 
     setResearchState('researching');
-    timerRef.current = setTimeout(() => setResearchState('ready'), 950);
+    timerRef.current = setTimeout(() => setResearchState('captured'), 950);
   };
 
   const resetResearch = () => {
@@ -209,7 +224,7 @@ function Home() {
                       <div className="mono-font text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Your workspace</div>
                       <h2 className="mt-1.5 text-[20px] font-extrabold tracking-[-0.04em] text-primary" id="results-title">Research results</h2>
                     </div>
-                    {researchState === 'ready' ? (
+                    {researchState === 'captured' ? (
                       <button type="button" onClick={resetResearch} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-primary" data-testid="button-start-over">
                         <RotateCcw className="h-3.5 w-3.5" />
                         Start over
@@ -228,19 +243,47 @@ function Home() {
                         <p className="mt-2 max-w-[330px] text-[12px] leading-5 text-muted-foreground">This local demo is preparing the next step. No external research is being run.</p>
                         <div className="mt-5 h-1 w-36 overflow-hidden rounded-full bg-muted"><div className="loading-line h-full w-full rounded-full bg-accent" /></div>
                       </div>
-                    ) : researchState === 'ready' ? (
-                      <div className="flex min-h-[285px] flex-col items-center justify-center px-6 text-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#dcebdd] text-[#397653]">
-                          <Check className="h-6 w-6" strokeWidth={2.5} />
+                    ) : researchState === 'captured' ? (
+                      <div className="min-h-[285px] p-5 sm:p-6">
+                        <div className="flex flex-col gap-4 border-b border-border/70 pb-5 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#dcebdd] text-[#397653]">
+                              <Check className="h-5 w-5" strokeWidth={2.5} />
+                            </div>
+                            <div>
+                              <div className="text-[15px] font-bold text-primary" data-testid="status-research-captured">Idea captured</div>
+                              <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
+                                <span className="font-bold text-primary">“{query.trim()}”</span> is ready for live research.
+                              </p>
+                            </div>
+                          </div>
+                          <span className="mono-font inline-flex w-fit rounded-full border border-accent/35 bg-accent/10 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.12em] text-primary">
+                            Awaiting source
+                          </span>
                         </div>
-                        <div className="mt-5 text-[15px] font-bold text-primary" data-testid="status-research-ready">Your research brief is ready to shape</div>
-                        <p className="mt-2 max-w-[390px] text-[12px] leading-5 text-muted-foreground">
-                          We have captured <span className="font-bold text-primary">“{query.trim()}”</span>. Live product insights are not connected in this workspace yet, so your findings will appear here once a research source is added.
-                        </p>
-                        <button type="button" onClick={resetResearch} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-[12px] font-bold text-primary transition-colors hover:border-primary/30 hover:bg-primary/5" data-testid="button-research-another">
-                          Research another idea
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </button>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-3" data-testid="research-result-outline">
+                          {researchSections.map((section) => (
+                            <div key={section.title} className="rounded-2xl border border-border/80 bg-background/60 p-4">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[12px] font-extrabold text-primary">{section.title}</span>
+                                <span className="h-1.5 w-1.5 rounded-full bg-border" aria-hidden="true" />
+                              </div>
+                              <p className="mt-2 text-[11px] leading-4 text-muted-foreground">{section.description}</p>
+                              <div className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70">No data yet</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-dashed border-primary/15 bg-background/45 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="text-[11px] leading-4 text-muted-foreground">
+                            This outline is ready to receive real findings when a research source is connected.
+                          </p>
+                          <button type="button" onClick={resetResearch} className="inline-flex shrink-0 items-center gap-2 text-[11px] font-bold text-primary transition-colors hover:text-primary/70" data-testid="button-research-another">
+                            Research another idea
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex min-h-[285px] flex-col items-center justify-center px-6 text-center">
