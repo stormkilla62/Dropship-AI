@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Dropship AI"
+description = "A beginner-friendly AI product research assistant for dropshipping. Enter a product or niche to start research, with a clear placeholder results state until live research is connected."
+version = "1.0.0"
+id = "artifacts/dropship-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21425
+
+[services.development]
+run = "pnpm --filter @workspace/dropship-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dropship-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/dropship-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21425"
+BASE_PATH = "/"
